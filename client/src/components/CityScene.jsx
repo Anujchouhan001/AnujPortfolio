@@ -1,7 +1,12 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Stars, Environment, MeshReflectorMaterial } from '@react-three/drei';
-import { useRef, useMemo, useEffect, useState } from 'react';
+import { Stars, MeshReflectorMaterial } from '@react-three/drei';
+import { useRef, useMemo, useEffect, useState, memo } from 'react';
 import * as THREE from 'three';
+
+/* ─── Detect mobile for performance scaling ─── */
+const isMobile = typeof window !== 'undefined' && (
+  window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+);
 
 /* ============================================================
    CAMERA RIG — Smooth cinematic camera on S-curve path
@@ -134,15 +139,6 @@ function Building({ position, width, height, depth, color, windowColor }) {
           <meshBasicMaterial color={color} transparent opacity={0.4} />
         </mesh>
       )}
-      {/* Rooftop blinking light */}
-      {height > 18 && (
-        <pointLight
-          position={[0, height + 6.2, 0]}
-          color="#ff3333"
-          intensity={2}
-          distance={8}
-        />
-      )}
     </group>
   );
 }
@@ -153,7 +149,8 @@ function CityBuildings() {
     const colors = ['#6366f1', '#8b5cf6', '#06b6d4', '#ec4899', '#a855f7', '#3b82f6', '#f97316'];
 
     // Dense buildings on both sides
-    for (let i = 0; i < 80; i++) {
+    const buildingCount = isMobile ? 40 : 80;
+    for (let i = 0; i < buildingCount; i++) {
       const side = Math.random() > 0.5 ? 1 : -1;
       const distFromRoad = 10 + Math.random() * 55;
       const height = 6 + Math.random() * 35;
@@ -192,17 +189,17 @@ function ReflectiveGround() {
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
       <planeGeometry args={[300, 400]} />
       <MeshReflectorMaterial
-        blur={[300, 100]}
-        resolution={1024}
+        blur={isMobile ? [100, 50] : [300, 100]}
+        resolution={isMobile ? 256 : 512}
         mixBlur={1}
-        mixStrength={40}
+        mixStrength={isMobile ? 15 : 30}
         roughness={1}
         depthScale={1.2}
         minDepthThreshold={0.4}
         maxDepthThreshold={1.4}
         color="#050510"
         metalness={0.5}
-        mirror={0.5}
+        mirror={isMobile ? 0.3 : 0.5}
       />
     </mesh>
   );
@@ -269,7 +266,8 @@ function NeonSigns() {
     const items = [];
     const texts = ['CYBER', 'NEON', 'DATA', 'CODE', 'DEV', 'TECH', 'AI', 'WEB'];
     const colors = ['#ec4899', '#06b6d4', '#a855f7', '#10b981', '#f97316', '#6366f1'];
-    for (let i = 0; i < 12; i++) {
+    const signCount = isMobile ? 6 : 12;
+    for (let i = 0; i < signCount; i++) {
       const side = Math.random() > 0.5 ? 1 : -1;
       items.push({
         pos: [side * (9 + Math.random() * 8), 5 + Math.random() * 15, -100 + Math.random() * 200],
@@ -305,7 +303,8 @@ function StreetLights() {
   const lights = useMemo(() => {
     const arr = [];
     const colors = ['#6366f1', '#06b6d4', '#a855f7', '#ec4899', '#10b981'];
-    for (let z = -120; z <= 120; z += 18) {
+    const lightSpacing = isMobile ? 36 : 18;
+    for (let z = -120; z <= 120; z += lightSpacing) {
       arr.push({ pos: [8, 6, z], c: colors[Math.floor(Math.random() * colors.length)] });
       arr.push({ pos: [-8, 6, z], c: colors[Math.floor(Math.random() * colors.length)] });
     }
@@ -334,8 +333,8 @@ function StreetLights() {
           {/* Cone of light */}
           <pointLight
             position={l.pos}
-            intensity={6}
-            distance={20}
+            intensity={isMobile ? 3 : 6}
+            distance={isMobile ? 12 : 20}
             color={l.c}
           />
           {/* Ground glow */}
@@ -394,7 +393,8 @@ function Traffic() {
   const cars = useMemo(() => {
     const arr = [];
     const colors = ['#6366f1', '#ec4899', '#06b6d4', '#a855f7', '#f97316'];
-    for (let i = 0; i < 5; i++) {
+    const carCount = isMobile ? 3 : 5;
+    for (let i = 0; i < carCount; i++) {
       const goingForward = Math.random() > 0.5;
       arr.push({
         startZ: -120 + Math.random() * 240,
@@ -419,7 +419,7 @@ function Traffic() {
    RAIN PARTICLES — Falling rain with streaks
    ============================================================ */
 function Rain() {
-  const count = 800;
+  const count = isMobile ? 300 : 800;
   const ref = useRef();
 
   const positions = useMemo(() => {
@@ -468,7 +468,7 @@ function Rain() {
    FLOATING DATA PARTICLES — Glowing orbs in the air
    ============================================================ */
 function DataParticles() {
-  const count = 300;
+  const count = isMobile ? 100 : 300;
   const ref = useRef();
 
   const [positions, colors] = useMemo(() => {
@@ -556,7 +556,8 @@ const CityScene = ({ gameState, currentSection }) => {
         shadows
         camera={{ position: [0, 50, 95], fov: 50, near: 0.1, far: 600 }}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
-        dpr={[1, 1.5]}
+        dpr={isMobile ? [1, 1] : [1, 1.5]}
+        performance={{ min: 0.5 }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = 1;
@@ -581,7 +582,7 @@ const CityScene = ({ gameState, currentSection }) => {
 
         <CameraRig gameState={gameState} currentSection={currentSection} />
 
-        <Stars radius={180} depth={100} count={5000} factor={5.5} saturation={0.3} fade speed={0.4} />
+        <Stars radius={180} depth={100} count={isMobile ? 1500 : 3000} factor={5.5} saturation={0.3} fade speed={0.4} />
 
         <CityBuildings />
         <ReflectiveGround />

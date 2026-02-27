@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaCode, FaBriefcase, FaRocket, FaGraduationCap, FaAward, FaEnvelope, FaChevronLeft, FaChevronRight, FaPause, FaPlay, FaKeyboard, FaGithub, FaExternalLinkAlt } from 'react-icons/fa';
 
@@ -328,6 +328,34 @@ const Journey = ({ currentSection, onSectionChange, onComplete }) => {
     return () => window.removeEventListener('keydown', handleKey);
   }, [goTo]);
 
+  // Touch/swipe navigation
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
+  useEffect(() => {
+    const handleTouchStart = (e) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    };
+    const handleTouchEnd = (e) => {
+      if (touchStartX.current === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = e.changedTouches[0].clientY - touchStartY.current;
+      // Only trigger if horizontal swipe is dominant and > 50px
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        if (dx < 0) goTo(1);  // swipe left → next
+        else goTo(-1);         // swipe right → prev
+      }
+      touchStartX.current = null;
+      touchStartY.current = null;
+    };
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [goTo]);
+
   const meta = sectionsMeta[currentSection];
   const SectionIcon = meta.icon;
   const PanelComponent = panels[currentSection];
@@ -345,7 +373,7 @@ const Journey = ({ currentSection, onSectionChange, onComplete }) => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.5 }}
           >
-            <FaKeyboard /> Use ← → arrows or A/D keys • Space to pause
+            <FaKeyboard /> {typeof window !== 'undefined' && 'ontouchstart' in window ? 'Swipe ← → to navigate' : 'Use ← → arrows or A/D keys • Space to pause'}
           </motion.div>
         )}
       </AnimatePresence>
@@ -399,10 +427,10 @@ const Journey = ({ currentSection, onSectionChange, onComplete }) => {
         <motion.div
           key={meta.key}
           className="section-panel"
-          initial={{ x: 80, opacity: 0, scale: 0.94, filter: 'blur(8px)' }}
-          animate={{ x: 0, opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          exit={{ x: -80, opacity: 0, scale: 0.94, filter: 'blur(8px)' }}
-          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          initial={{ x: 60, opacity: 0, scale: 0.96 }}
+          animate={{ x: 0, opacity: 1, scale: 1 }}
+          exit={{ x: -60, opacity: 0, scale: 0.96 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
           style={{ '--panel-accent': meta.color }}
         >
           <div className="panel-header">

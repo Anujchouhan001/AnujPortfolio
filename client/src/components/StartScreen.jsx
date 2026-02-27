@@ -54,6 +54,8 @@ const codeSnippets = [
   'router.get("/api")',
 ];
 
+const startIsMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+
 const StartScreen = ({ onStart }) => {
   const [ready, setReady] = useState(false);
   const [glitch, setGlitch] = useState(false);
@@ -105,8 +107,8 @@ const StartScreen = ({ onStart }) => {
     <motion.div
       className="start-screen"
       ref={containerRef}
-      exit={{ opacity: 0, scale: 1.15, filter: 'blur(10px)' }}
-      transition={{ duration: 1.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+      exit={{ opacity: 0, scale: 1.1 }}
+      transition={{ duration: 1.0, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       {/* Animated grid background */}
       <div className="start-grid" style={{
@@ -115,7 +117,7 @@ const StartScreen = ({ onStart }) => {
 
       {/* Particles rising */}
       <div className="start-particles">
-        {Array.from({ length: 100 }).map((_, i) => (
+        {Array.from({ length: startIsMobile ? 25 : 100 }).map((_, i) => (
           <div
             key={i}
             className="start-particle"
@@ -134,7 +136,7 @@ const StartScreen = ({ onStart }) => {
 
       {/* Floating code snippets */}
       <div className="start-code-rain">
-        {codeSnippets.map((snippet, i) => (
+        {(startIsMobile ? codeSnippets.slice(0, 6) : codeSnippets).map((snippet, i) => (
           <motion.div
             key={i}
             className="code-snippet"
