@@ -1,11 +1,25 @@
-import { useState, useCallback, useEffect, Component } from 'react';
+import { useState, useCallback, useEffect, Component, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import CityScene from './components/CityScene';
 import StartScreen from './components/StartScreen';
 import Journey from './components/Journey';
 import './App.css';
 
+/* Lazy-load the heavy 3D scene — only loads when first rendered */
+const CityScene = lazy(() => import('./components/CityScene'));
+
 const TOTAL_SECTIONS = 7;
+
+/* ─── Gradient fallback while 3D loads ─── */
+const SceneFallback = () => (
+  <div className="city-canvas" style={{
+    background: 'linear-gradient(180deg, #010008 0%, #0a0025 40%, #120035 70%, #010008 100%)',
+  }}>
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: 'radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.08) 0%, transparent 60%)',
+    }} />
+  </div>
+);
 
 /* ─── Error Boundary for 3D Scene ─── */
 class SceneErrorBoundary extends Component {
@@ -21,16 +35,7 @@ class SceneErrorBoundary extends Component {
   }
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="city-canvas" style={{
-          background: 'linear-gradient(180deg, #010008 0%, #0a0025 40%, #120035 70%, #010008 100%)',
-        }}>
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.08) 0%, transparent 60%)',
-          }} />
-        </div>
-      );
+      return <SceneFallback />;
     }
     return this.props.children;
   }
@@ -129,10 +134,12 @@ const CompleteScreen = ({ onRestart }) => {
 function App() {
   const [gameState, setGameState] = useState('start');   // start | entering | journey | complete
   const [currentSection, setCurrentSection] = useState(0);
+  const [sceneReady, setSceneReady] = useState(false);   // true once 3D starts loading
 
   const handleStart = useCallback(() => {
     setGameState('entering');
-    setTimeout(() => setGameState('journey'), 3200);
+    setSceneReady(true);  // start loading 3D scene now
+    setTimeout(() => setGameState('journey'), 3500);
   }, []);
 
   const handleComplete = useCallback(() => setGameState('complete'), []);
@@ -140,10 +147,16 @@ function App() {
 
   return (
     <div className="game-container">
-      {/* 3D background always rendered — wrapped in error boundary */}
-      <SceneErrorBoundary>
-        <CityScene currentSection={currentSection} gameState={gameState} />
-      </SceneErrorBoundary>
+      {/* 3D scene: only load after user clicks start — gradient fallback until then */}
+      {sceneReady ? (
+        <SceneErrorBoundary>
+          <Suspense fallback={<SceneFallback />}>
+            <CityScene currentSection={currentSection} gameState={gameState} />
+          </Suspense>
+        </SceneErrorBoundary>
+      ) : (
+        <SceneFallback />
+      )}
 
       <div className="scanlines" />
       <div className="vignette" />

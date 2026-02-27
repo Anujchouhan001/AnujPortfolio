@@ -153,7 +153,7 @@ function CityBuildings() {
     const colors = ['#6366f1', '#8b5cf6', '#06b6d4', '#ec4899', '#a855f7', '#3b82f6', '#f97316'];
 
     // Dense buildings on both sides
-    for (let i = 0; i < 130; i++) {
+    for (let i = 0; i < 80; i++) {
       const side = Math.random() > 0.5 ? 1 : -1;
       const distFromRoad = 10 + Math.random() * 55;
       const height = 6 + Math.random() * 35;
@@ -269,7 +269,7 @@ function NeonSigns() {
     const items = [];
     const texts = ['CYBER', 'NEON', 'DATA', 'CODE', 'DEV', 'TECH', 'AI', 'WEB'];
     const colors = ['#ec4899', '#06b6d4', '#a855f7', '#10b981', '#f97316', '#6366f1'];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 12; i++) {
       const side = Math.random() > 0.5 ? 1 : -1;
       items.push({
         pos: [side * (9 + Math.random() * 8), 5 + Math.random() * 15, -100 + Math.random() * 200],
@@ -394,7 +394,7 @@ function Traffic() {
   const cars = useMemo(() => {
     const arr = [];
     const colors = ['#6366f1', '#ec4899', '#06b6d4', '#a855f7', '#f97316'];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 5; i++) {
       const goingForward = Math.random() > 0.5;
       arr.push({
         startZ: -120 + Math.random() * 240,
@@ -419,7 +419,7 @@ function Traffic() {
    RAIN PARTICLES — Falling rain with streaks
    ============================================================ */
 function Rain() {
-  const count = 1500;
+  const count = 800;
   const ref = useRef();
 
   const positions = useMemo(() => {
@@ -468,7 +468,7 @@ function Rain() {
    FLOATING DATA PARTICLES — Glowing orbs in the air
    ============================================================ */
 function DataParticles() {
-  const count = 600;
+  const count = 300;
   const ref = useRef();
 
   const [positions, colors] = useMemo(() => {
