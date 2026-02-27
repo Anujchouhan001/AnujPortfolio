@@ -217,7 +217,8 @@ const ContactPanel = () => {
     if (!form.name || !form.email || !form.subject || !form.message) return;
     setStatus('sending');
     try {
-      const res = await fetch('/api/contact', {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${apiUrl}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -230,7 +231,11 @@ const ContactPanel = () => {
         setStatus('error');
       }
     } catch {
-      setStatus('error');
+      // If server is not available, open mailto fallback
+      const mailtoLink = `mailto:canuj546@gmail.com?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(`From: ${form.name} (${form.email})\n\n${form.message}`)}`;
+      window.open(mailtoLink);
+      setStatus('success');
+      setForm({ name: '', email: '', subject: '', message: '' });
     }
     setTimeout(() => setStatus('idle'), 4000);
   };

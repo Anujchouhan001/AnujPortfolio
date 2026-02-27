@@ -8,8 +8,14 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
-        changeOrigin: true
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', () => {});
+        }
       }
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 1200,
   }
 })

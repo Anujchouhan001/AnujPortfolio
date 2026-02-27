@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Component } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import CityScene from './components/CityScene';
 import StartScreen from './components/StartScreen';
@@ -6,6 +6,35 @@ import Journey from './components/Journey';
 import './App.css';
 
 const TOTAL_SECTIONS = 7;
+
+/* ─── Error Boundary for 3D Scene ─── */
+class SceneErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    console.warn('3D Scene failed to load:', error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="city-canvas" style={{
+          background: 'linear-gradient(180deg, #010008 0%, #0a0025 40%, #120035 70%, #010008 100%)',
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.08) 0%, transparent 60%)',
+          }} />
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 /* ─── Entering Screen ─── */
 const EnteringScreen = () => {
@@ -111,19 +140,24 @@ function App() {
 
   return (
     <div className="game-container">
-      {/* 3D background always rendered */}
-      <CityScene currentSection={currentSection} gameState={gameState} />
+      {/* 3D background always rendered — wrapped in error boundary */}
+      <SceneErrorBoundary>
+        <CityScene currentSection={currentSection} gameState={gameState} />
+      </SceneErrorBoundary>
 
       <div className="scanlines" />
       <div className="vignette" />
 
       <AnimatePresence mode="wait">
-        {gameState === 'start' && <StartScreen key="start" onStart={handleStart} />}
-        {gameState === 'entering' && <EnteringScreen key="entering" />}
-        {gameState === 'journey' && (
+        {gameState === 'start' ? (
+          <StartScreen key="start" onStart={handleStart} />
+        ) : gameState === 'entering' ? (
+          <EnteringScreen key="entering" />
+        ) : gameState === 'journey' ? (
           <Journey key="journey" currentSection={currentSection} onSectionChange={setCurrentSection} onComplete={handleComplete} />
-        )}
-        {gameState === 'complete' && <CompleteScreen key="complete" onRestart={handleRestart} />}
+        ) : gameState === 'complete' ? (
+          <CompleteScreen key="complete" onRestart={handleRestart} />
+        ) : null}
       </AnimatePresence>
     </div>
   );

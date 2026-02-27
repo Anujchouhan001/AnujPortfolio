@@ -522,6 +522,34 @@ function DataParticles() {
    MAIN CITY SCENE
    ============================================================ */
 const CityScene = ({ gameState, currentSection }) => {
+  // Check for WebGL support
+  const [webGLSupported, setWebGLSupported] = useState(true);
+  
+  useEffect(() => {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        setWebGLSupported(false);
+      }
+    } catch (e) {
+      setWebGLSupported(false);
+    }
+  }, []);
+
+  if (!webGLSupported) {
+    return (
+      <div className="city-canvas" style={{
+        background: 'linear-gradient(180deg, #010008 0%, #0a0025 40%, #120035 70%, #010008 100%)',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.08) 0%, transparent 60%)',
+        }} />
+      </div>
+    );
+  }
+
   return (
     <div className="city-canvas">
       <Canvas
@@ -529,6 +557,10 @@ const CityScene = ({ gameState, currentSection }) => {
         camera={{ position: [0, 50, 95], fov: 50, near: 0.1, far: 600 }}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
         dpr={[1, 1.5]}
+        onCreated={({ gl }) => {
+          gl.toneMapping = THREE.ACESFilmicToneMapping;
+          gl.toneMappingExposure = 1;
+        }}
       >
         <color attach="background" args={['#010008']} />
         <fog attach="fog" args={['#010008', 15, 180]} />
