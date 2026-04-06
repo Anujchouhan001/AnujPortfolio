@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="M logo favicon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#1f2937"/>
+    </linearGradient>
+    <linearGradient id="m" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d1d5db"/>
+      <stop offset="100%" stop-color="#f9fafb"/>
+    </linearGradient>
+  </defs>
+  <rect x="3" y="3" width="58" height="58" rx="14" fill="url(#bg)"/>
+  <path fill="url(#m)" d="M16 46V18h8.6l7.4 11.8L39.4 18H48v28h-8v-15l-8 12.4L24 31v15z"/>
+</svg>
